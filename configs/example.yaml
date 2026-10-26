@@ -1,0 +1,90 @@
+name: "Example Scenario: Veridian Democracy"
+description: "Demonstration scenario for testing long-term democratic simulation."
+country:
+  name: "Republic of Veridia"
+  population: 12000000
+  n_regions: 8
+institutions:
+  electoral_system: "pr"
+  pr_formula: "dhondt"
+  seats: 150
+  threshold: 0.05
+  cycle_months: 48
+parties:
+  - id: sdp
+    name: "Social Democratic Party"
+    abbreviation: "SDP"
+    color: "#E63946"
+    ideology:
+      economic: -45.0
+      social: -30.0
+      authority: -10.0
+      identity: -25.0
+      secularism: -20.0
+      environment: 20.0
+      trust: 20.0
+    salience:
+      economic: 0.85
+      social: 0.60
+    pragmatism: 0.65
+    organization: 0.75
+    funding: 0.65
+  - id: cdp
+    name: "Conservative Democratic Alliance"
+    abbreviation: "CDA"
+    color: "#1D3557"
+    ideology:
+      economic: 35.0
+      social: 35.0
+      authority: 20.0
+      identity: 25.0
+      secularism: 25.0
+      environment: -20.0
+      trust: 30.0
+    salience:
+      economic: 0.75
+      social: 0.65
+    pragmatism: 0.60
+    organization: 0.70
+    funding: 0.75
+  - id: lib
+    name: "Free Liberal Movement"
+    abbreviation: "FLM"
+    color: "#FFB703"
+    ideology:
+      economic: 55.0
+      social: -40.0
+      authority: -50.0
+      identity: -35.0
+      secularism: -40.0
+      environment: 0.0
+      trust: 15.0
+    salience:
+      economic: 0.80
+      authority: 0.70
+    pragmatism: 0.70
+    organization: 0.55
+    funding: 0.70
+  - id: grn
+    name: "Green Ecological Union"
+    abbreviation: "GEU"
+    color: "#2A9D8F"
+    ideology:
+      economic: -20.0
+      social: -55.0
+      authority: -30.0
+      identity: -45.0
+      secularism: -30.0
+      environment: 85.0
+      trust: -5.0
+    salience:
+      environment: 0.95
+      social: 0.65
+    pragmatism: 0.45
+    organization: 0.50
+    funding: 0.40
+events:
+  chaos_level: 1.0
+settings:
+  seed: 123
+  years: 50

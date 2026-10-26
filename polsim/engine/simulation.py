@@ -279,6 +279,12 @@ class Simulation:
             new_rel = initialize_relations(self.state.parties, self.state.axes, self.config.institutions.cordon_rules)
             self.state.relations = new_rel
 
+            # Expand cohort loyalty array if party count grew
+            diff_m = m - self.state.cohorts.loyalty.shape[1]
+            if diff_m > 0:
+                zero_pad = np.zeros((self.state.cohorts.n_cohorts, diff_m), dtype=np.float64)
+                self.state.cohorts.loyalty = np.hstack([self.state.cohorts.loyalty, zero_pad])
+
         for log_msg in lc_logs:
             entry = self.history.append(
                 tick=self.state.tick,

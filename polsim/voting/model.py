@@ -89,7 +89,8 @@ def compute_voter_utilities(
             utilities[:, j] += params.protest_weight * party.populism * (economy.corruption - 0.30)
 
     # 5. Historical Partisan Brand Loyalty: gamma_ij
-    utilities += params.loyalty_weight * cohorts.loyalty[:, :m_parties]
+    avail_loyalty = min(m_parties, cohorts.loyalty.shape[1])
+    utilities[:, :avail_loyalty] += params.loyalty_weight * cohorts.loyalty[:, :avail_loyalty]
 
     return utilities
 

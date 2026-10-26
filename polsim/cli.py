@@ -83,6 +83,34 @@ def run(
 
 
 @app.command()
+def calibrate(
+    preset_name: str = typer.Option("industrial_democracy", "--preset", "-p"),
+    runs: int = typer.Option(5, "--runs", "-n", help="Number of seeded runs to evaluate"),
+    years: int = typer.Option(15, "--years", "-y", help="Years per run"),
+    workers: int = typer.Option(2, "--workers", "-w", help="Parallel worker processes"),
+) -> None:
+    """Run calibration batch and evaluate against documented empirical ranges."""
+    from polsim.calibration.harness import CalibrationHarness
+
+    sc = build_scenario(preset_name)
+    harness = CalibrationHarness(sc)
+    typer.echo(f"Running calibration harness ({runs} parallel runs of {years} years)...")
+    df = harness.run_batch(n_runs=runs, years=years, max_workers=workers)
+    report = harness.evaluate_calibration(df)
+
+    typer.echo("\n--- CALIBRATION REPORT ---")
+    typer.echo(f"Mean National Turnout: {report['mean_turnout']:.1%}")
+    typer.echo(f"Effective Parties (ENP): {report['mean_enp']}")
+    typer.echo(f"Disproportionality (Gallagher): {report['mean_gallagher']}")
+    if report["flags"]:
+        typer.echo("\n[!] Warnings:")
+        for flag in report["flags"]:
+            typer.echo(f"  * {flag}")
+    else:
+        typer.echo("\n[OK] All simulation indicators fall within empirical bounds.")
+
+
+@app.command()
 def serve(
     host: str = typer.Option("127.0.0.1", "--host", "-h"),
     port: int = typer.Option(8000, "--port", "-p"),
