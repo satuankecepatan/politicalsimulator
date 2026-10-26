@@ -22,8 +22,9 @@ $RECYCLE.BIN/
 *.swo
 *~
 
-# Environment & Credentials
-.env
+# Persistence
+*.db
+*.sqlite3
 .env.local
 .env.*.local
 *.env
