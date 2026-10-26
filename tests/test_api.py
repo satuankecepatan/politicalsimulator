@@ -64,3 +64,92 @@ def test_session_lifecycle():
     save_res = client.post(f"/api/sessions/{sid}/save")
     assert save_res.status_code == 200
     assert save_res.json()["status"] == "saved"
+
+
+def test_party_customization_and_ideology_update():
+    create_res = client.post("/api/sessions", json={"preset": "industrial_democracy", "seed": 42})
+    assert create_res.status_code == 200
+    sid = create_res.json()["session_id"]
+
+    # Intervene to modify party name, abbr, color, and 7-axis ideology
+    int_res = client.post(
+        f"/api/sessions/{sid}/intervene",
+        json={
+            "type": "party_update",
+            "party_id": "sdp",
+            "name": "Progressive Vanguard Coalition",
+            "abbreviation": "PVC",
+            "color": "#00F0FF",
+            "position": {
+                "economic": -80.0,
+                "social": -75.0,
+                "authority": 10.0,
+                "identity": -50.0,
+                "secularism": -60.0,
+                "environment": 90.0,
+                "trust": -20.0,
+            },
+        },
+    )
+    assert int_res.status_code == 200
+    stat = int_res.json()["summary"]
+    parties = {p["id"]: p for p in stat["parties"]}
+    assert "sdp" in parties
+    sdp = parties["sdp"]
+    assert sdp["name"] == "Progressive Vanguard Coalition"
+    assert sdp["abbr"] == "PVC"
+    assert sdp["color"] == "#00F0FF"
+    assert sdp["ideology"]["economic"] == -80.0
+    assert sdp["ideology"]["environment"] == 90.0
+
+
+def test_create_session_with_custom_parties():
+    custom_parties = [
+        {
+            "id": "tech_party",
+            "name": "Technocratic Synthesists",
+            "abbreviation": "TECH",
+            "color": "#CCFF00",
+            "ideology": {
+                "economic": 20.0,
+                "social": -40.0,
+                "authority": 30.0,
+                "identity": -10.0,
+                "secularism": -80.0,
+                "environment": 50.0,
+                "trust": 70.0,
+            },
+        },
+        {
+            "id": "trad_union",
+            "name": "Traditionalist Union",
+            "abbreviation": "TU",
+            "color": "#E63946",
+            "ideology": {
+                "economic": -60.0,
+                "social": 60.0,
+                "authority": 40.0,
+                "identity": 50.0,
+                "secularism": 40.0,
+                "environment": -30.0,
+                "trust": 10.0,
+            },
+        },
+    ]
+
+    create_res = client.post(
+        "/api/sessions",
+        json={
+            "preset": "industrial_democracy",
+            "seed": 101,
+            "parties": custom_parties,
+        },
+    )
+    assert create_res.status_code == 200
+    data = create_res.json()
+    summary = data["summary"]
+    p_names = [p["name"] for p in summary["parties"]]
+    assert "Technocratic Synthesists" in p_names
+    assert "Traditionalist Union" in p_names
+    assert len(summary["parties"]) == 2
+

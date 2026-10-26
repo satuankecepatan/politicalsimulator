@@ -72,6 +72,10 @@ class CreateSessionRequest(BaseModel):
     config: ScenarioConfig | None = None
     preset: str = "industrial_democracy"
     seed: int = 42
+    country: dict[str, Any] | None = None
+    institutions: dict[str, Any] | None = None
+    parties: list[dict[str, Any]] | None = None
+    events: dict[str, Any] | None = None
 
 
 @app.post("/api/sessions")
@@ -82,6 +86,38 @@ def create_session(req: CreateSessionRequest) -> dict[str, Any]:
     else:
         sc = build_scenario(req.preset, seed=req.seed)
         sc.settings.seed = req.seed
+        if req.country:
+            if "name" in req.country:
+                sc.country.name = req.country["name"]
+            if "population" in req.country:
+                sc.country.population = int(req.country["population"])
+            if "n_regions" in req.country:
+                sc.country.n_regions = int(req.country["n_regions"])
+        if req.institutions:
+            if "electoral_system" in req.institutions:
+                sc.institutions.electoral_system = req.institutions["electoral_system"]
+            if "seats" in req.institutions:
+                sc.institutions.seats = int(req.institutions["seats"])
+            if "threshold" in req.institutions:
+                sc.institutions.threshold = float(req.institutions["threshold"])
+        if req.events and "chaos_level" in req.events:
+            sc.events.chaos_level = float(req.events["chaos_level"])
+        if req.parties:
+            from polsim.config.schema import PartyConfig
+            party_field_names = set(PartyConfig.model_fields.keys())
+            clean_parties = []
+            for p in req.parties:
+                p_copy = dict(p)
+                if "abbr" in p_copy and "abbreviation" not in p_copy:
+                    p_copy["abbreviation"] = p_copy["abbr"]
+                if "id" not in p_copy or not p_copy["id"]:
+                    p_copy["id"] = p_copy.get("abbreviation", "pty").lower().replace(" ", "_")
+                if "color" in p_copy and p_copy["color"] and not str(p_copy["color"]).startswith("#"):
+                    p_copy["color"] = f"#{p_copy['color']}"
+                filtered = {k: v for k, v in p_copy.items() if k in party_field_names}
+                clean_parties.append(PartyConfig.model_validate(filtered))
+            if clean_parties:
+                sc.parties = clean_parties
 
     session_id, sim = manager.create(sc, seed=sc.settings.seed)
     return {
@@ -168,9 +204,12 @@ def get_history(
 
 
 class InterveneRequest(BaseModel):
-    type: Literal["event", "party_position"]
+    type: Literal["event", "party_position", "party_update"]
     event_id: str | None = None
     party_id: str | None = None
+    name: str | None = None
+    abbreviation: str | None = None
+    color: str | None = None
     position: dict[str, float] | None = None
 
 
@@ -185,8 +224,14 @@ def intervene(session_id: str, req: InterveneRequest) -> dict[str, Any]:
         success = sim.intervene_trigger_event(req.event_id)
         if not success:
             raise HTTPException(status_code=400, detail=f"Event '{req.event_id}' not found")
-    elif req.type == "party_position" and req.party_id and req.position:
-        sim.intervene_party_position(req.party_id, req.position)
+    elif req.type in {"party_position", "party_update"} and req.party_id:
+        sim.intervene_party(
+            party_id=req.party_id,
+            name=req.name,
+            abbreviation=req.abbreviation,
+            color=req.color,
+            position=req.position,
+        )
 
     return {"status": "ok", "summary": sim.get_status_summary()}
 

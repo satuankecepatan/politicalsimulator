@@ -5,6 +5,11 @@ from __future__ import annotations
 from typing import Any, Callable
 import numpy as np
 
+from polsim.analytics.metrics import (
+    dalton_polarization,
+    effective_number_of_parties,
+    gallagher_index,
+)
 from polsim.config.schema import ScenarioConfig
 from polsim.core.calendar import SimDate
 from polsim.core.rng import RngStreams
@@ -109,7 +114,22 @@ class Simulation:
 
         # Initial election to form starting parliament and government
         self._latest_poll: dict[str, float] = {}
+        self.time_series: list[dict[str, Any]] = []
         self._conduct_election_round(is_initial=True)
+        self._latest_poll = take_poll(
+            self.state.cohorts,
+            self.state.active_parties,
+            self.state.economy,
+            self.config.parameters.voting,
+            n_effective=1500,
+            rng=self.rng["polling"],
+        )
+        self.time_series.append({
+            "tick": self.state.tick,
+            "date": self.state.date.format(),
+            "poll": self._latest_poll.copy(),
+            "economy": self.state.economy.to_dict(),
+        })
 
     def _conduct_election_round(self, is_initial: bool = False) -> ElectionResult:
         """Run election and subsequent coalition formation."""
@@ -309,7 +329,7 @@ class Simulation:
             entries_this_tick.append(self.history.entries[-2])  # election entry
             entries_this_tick.append(self.history.entries[-1])  # coalition entry
 
-        # 10. Polling
+        # 10. Polling & time series recording
         self._latest_poll = take_poll(
             self.state.cohorts,
             self.state.active_parties,
@@ -318,6 +338,12 @@ class Simulation:
             n_effective=1500,
             rng=self.rng["polling"],
         )
+        self.time_series.append({
+            "tick": self.state.tick,
+            "date": self.state.date.format(),
+            "poll": self._latest_poll.copy(),
+            "economy": self.state.economy.to_dict(),
+        })
 
         return entries_this_tick
 
@@ -331,14 +357,62 @@ class Simulation:
             if progress_callback:
                 progress_callback(step + 1, total_steps)
 
-    def intervene_party_position(self, party_id: str, new_position: dict[str, float]) -> None:
-        """User intervention: modify a party's ideological position in [-100..100] coordinates."""
+    def intervene_party(
+        self,
+        party_id: str,
+        name: str | None = None,
+        abbreviation: str | None = None,
+        color: str | None = None,
+        position: dict[str, float] | None = None,
+    ) -> None:
+        """User intervention: modify a party's name, abbreviation, color, or ideology across axes."""
+        target_party = None
         for p in self.state.parties:
             if p.id == party_id:
-                for axis, val in new_position.items():
-                    if axis in self.state.axes:
-                        idx = self.state.axes.index(axis)
-                        p.position[idx] = float(np.clip(val / 100.0, -1.0, 1.0))
+                target_party = p
+                if name:
+                    p.name = name
+                if abbreviation:
+                    p.abbreviation = abbreviation
+                if color:
+                    p.color = color
+                if position:
+                    for axis, val in position.items():
+                        if axis in self.state.axes:
+                            idx = self.state.axes.index(axis)
+                            p.position[idx] = float(np.clip(val / 100.0, -1.0, 1.0))
+                break
+
+        if target_party:
+            # Recompute relations and poll snapshot
+            self.state.relations = initialize_relations(
+                self.state.parties, self.state.axes, self.config.institutions.cordon_rules
+            )
+            self._latest_poll = take_poll(
+                self.state.cohorts,
+                self.state.active_parties,
+                self.state.economy,
+                self.config.parameters.voting,
+                n_effective=1500,
+                rng=self.rng["polling"],
+            )
+            entry = self.history.append(
+                tick=self.state.tick,
+                date_str=self.state.date.format(),
+                entry_type="party_update",
+                title=f"[Platform] {target_party.name} Realigned",
+                details={
+                    "party_id": party_id,
+                    "name": target_party.name,
+                    "abbr": target_party.abbreviation,
+                    "color": target_party.color,
+                },
+                prose=f"Executive revision: {target_party.name} ({target_party.abbreviation}) updated its party platform and electoral branding.",
+            )
+
+    def intervene_party_position(self, party_id: str, new_position: dict[str, float]) -> None:
+        """User intervention: modify a party's ideological position in [-100..100] coordinates."""
+        self.intervene_party(party_id=party_id, position=new_position)
 
     def intervene_trigger_event(self, event_id: str) -> bool:
         """User intervention: force trigger a specific event by ID."""
@@ -400,21 +474,56 @@ class Simulation:
         }
 
     def get_status_summary(self) -> dict[str, Any]:
-        """Return a lightweight state summary dict for live frontend polling/websockets."""
+        """Return a rich state summary dict including party ideology across axes, analytics, and time-series."""
         gov = self.state.government
+        active = self.state.active_parties
+        shares = [p.vote_share for p in active]
+        seats = [p.seats for p in active]
+        total_seats = self.config.institutions.seats
+        seat_shares = [(s / total_seats) if total_seats > 0 else 0.0 for s in seats]
+
+        # Calculate political science analytics
+        enp_v = round(effective_number_of_parties(shares), 2) if shares else 0.0
+        enp_s = round(effective_number_of_parties(seats), 2) if seats else 0.0
+        gallagher = round(gallagher_index(shares, seat_shares), 2) if shares and seats else 0.0
+
+        if active:
+            pos_matrix = np.array([p.position for p in active], dtype=np.float64)
+            polarization = round(dalton_polarization(shares, pos_matrix), 2)
+        else:
+            polarization = 0.0
+
         return {
             "tick": self.state.tick,
             "date": self.state.date.format(),
             "year": self.state.date.year,
             "month": self.state.date.month,
+            "axes": [
+                {
+                    "id": a.id,
+                    "name": a.name,
+                    "low": a.low_label,
+                    "high": a.high_label,
+                }
+                for a in self.config.axes
+            ],
             "economy": self.state.economy.to_dict(),
             "government": {
                 "leader": gov.leader_party_id,
                 "coalition": gov.coalition_party_ids,
                 "stability": round(gov.stability, 2),
                 "months_in_office": gov.months_in_office,
+                "legislation_passed": gov.legislation_passed,
+            },
+            "analytics": {
+                "enp_v": enp_v,
+                "enp_s": enp_s,
+                "gallagher": gallagher,
+                "polarization": polarization,
+                "stability": round(gov.stability * 100.0, 1),
             },
             "poll": self._latest_poll,
+            "time_series": self.time_series[-60:],  # Recent 60 ticks
             "parties": [
                 {
                     "id": p.id,
@@ -424,6 +533,14 @@ class Simulation:
                     "seats": p.seats,
                     "vote_share": round(p.vote_share, 4),
                     "in_gov": p.in_government,
+                    "is_leader": p.is_leader,
+                    "pragmatism": round(p.pragmatism, 2),
+                    "cohesion": round(p.cohesion, 2),
+                    "charisma": round(p.charisma, 2),
+                    "ideology": {
+                        axis: round(float(p.position[i] * 100.0), 1)
+                        for i, axis in enumerate(self.state.axes)
+                    },
                 }
                 for p in self.state.active_parties
             ],

@@ -19,6 +19,8 @@ def create_snapshot(sim: Simulation) -> bytes:
         "history": sim.history,
         "map_data": sim.map_data,
         "rng_states": sim.rng.get_state(),
+        "time_series": getattr(sim, "time_series", []),
+        "latest_poll": getattr(sim, "_latest_poll", {}),
     }
     raw = pickle.dumps(payload, protocol=pickle.HIGHEST_PROTOCOL)
     return zlib.compress(raw, level=6)
@@ -36,6 +38,8 @@ def restore_snapshot(data: bytes) -> Simulation:
     sim.state = payload["state"]
     sim.history = payload["history"]
     sim.map_data = payload["map_data"]
+    sim.time_series = payload.get("time_series", [])
+    sim._latest_poll = payload.get("latest_poll", {})
 
     # Re-initialize RNG and set saved bit generator states
     from polsim.core.rng import RngStreams
@@ -49,7 +53,6 @@ def restore_snapshot(data: bytes) -> Simulation:
 
     sim.event_engine = EventEngine(sim.config.events)
     sim.narrator = TemplateNarrator()
-    sim._latest_poll = {}
     return sim
 
 

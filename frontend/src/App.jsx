@@ -162,12 +162,19 @@ export default function App() {
       });
   };
 
-  const handleUpdatePartyPosition = (partyId, position) => {
+  const handleUpdateParty = (partyId, updates = {}) => {
     if (!session) return;
     fetch(`/api/sessions/${session.id}/intervene`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'party_position', party_id: partyId, position }),
+      body: JSON.stringify({
+        type: 'party_update',
+        party_id: partyId,
+        name: updates.name,
+        abbreviation: updates.abbreviation,
+        color: updates.color,
+        position: updates.position,
+      }),
     })
       .then((r) => r.json())
       .then((d) => {
@@ -176,6 +183,9 @@ export default function App() {
         fetch(`/api/sessions/${session.id}/compass`)
           .then((res) => res.json())
           .then((cmp) => setCompassData(cmp));
+        fetch(`/api/sessions/${session.id}/history`)
+          .then((res) => res.json())
+          .then((ents) => setHistoryEntries(ents));
       });
   };
 
@@ -205,7 +215,23 @@ export default function App() {
 
   const handleWizardLaunch = (scenarioPayload) => {
     setShowWizard(false);
-    initSession(scenarioPayload.preset, scenarioPayload.seed);
+    fetch('/api/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(scenarioPayload),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        setSession({ id: data.session_id, name: data.name });
+        setStatus(data.summary);
+        setMapData(data.map);
+        setCompassData(data.compass);
+        fetch(`/api/sessions/${data.session_id}/history`)
+          .then((r) => r.json())
+          .then((entries) => setHistoryEntries(entries));
+        connectWs(data.session_id);
+      })
+      .catch((err) => console.error('Failed to launch scenario:', err));
   };
 
   const parties = status?.parties || [];
@@ -261,7 +287,7 @@ export default function App() {
             <ChronicleView entries={historyEntries} />
             <PoliticalCompass
               compassData={compassData}
-              onUpdatePartyPosition={handleUpdatePartyPosition}
+              onUpdatePartyPosition={(partyId, pos) => handleUpdateParty(partyId, { position: pos })}
             />
           </div>
         )}
@@ -275,7 +301,7 @@ export default function App() {
 
         {activeTab === 'TRENDS' && (
           <div style={{ flex: 1, height: 'calc(100vh - 140px)' }}>
-            <ChartsView historyEntries={historyEntries} parties={parties} />
+            <ChartsView historyEntries={historyEntries} parties={parties} status={status} />
           </div>
         )}
       </main>
@@ -286,7 +312,7 @@ export default function App() {
           parties={parties}
           onClose={() => setShowIntervention(false)}
           onTriggerEvent={handleTriggerEvent}
-          onUpdatePartyPosition={handleUpdatePartyPosition}
+          onUpdateParty={handleUpdateParty}
           onFork={handleFork}
         />
       )}
