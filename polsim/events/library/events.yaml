@@ -1,0 +1,862 @@
+# 60+ Data-Driven Political Simulator Events
+# Covers: economic, scandal, social, security, disaster, international, technological, institutional, leadership
+
+- id: econ_stock_crash
+  title: Financial Market Panic
+  description: Sudden stock market sell-off triggers credit contraction and rising unemployment.
+  category: economic
+  base_prob: 0.035
+  precondition: economy.growth > 1.0
+  severity: 0.75
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -2.8
+      duration_ticks: 6
+    - target: economy
+      parameter: unemployment
+      delta: 1.8
+      duration_ticks: 8
+
+- id: econ_inflation_shock
+  title: Energy & Commodity Price Spike
+  description: Surge in global fossil fuel and import costs pushes domestic inflation upward.
+  category: economic
+  base_prob: 0.040
+  precondition: economy.inflation < 6.0
+  severity: 0.65
+  effects:
+    - target: economy
+      parameter: inflation
+      delta: 3.2
+      duration_ticks: 6
+    - target: party
+      parameter: valence_boost
+      delta: -0.3
+      duration_ticks: 4
+
+- id: econ_mineral_boom
+  title: Strategic Mineral Discovery
+  description: Large deposits of rare earth minerals discovered, stimulating foreign direct investment.
+  category: economic
+  base_prob: 0.025
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: growth
+      delta: 2.5
+      duration_ticks: 12
+    - target: economy
+      parameter: unemployment
+      delta: -1.2
+      duration_ticks: 12
+
+- id: econ_debt_crisis
+  title: Sovereign Debt Rating Downgrade
+  description: Credit rating agencies downgrade government bonds, driving borrowing costs to crisis levels.
+  category: economic
+  base_prob: 0.030
+  precondition: economy.growth < 1.0
+  severity: 0.80
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -2.0
+      duration_ticks: 8
+    - target: government
+      parameter: stability
+      delta: -0.25
+      duration_ticks: 6
+
+- id: econ_banking_run
+  title: Major Regional Bank Insolvency
+  description: Depositor panic leads to liquidity runs on several regional financial institutions.
+  category: economic
+  base_prob: 0.025
+  severity: 0.75
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.8
+      duration_ticks: 5
+    - target: party
+      parameter: valence_boost
+      delta: -0.2
+      duration_ticks: 3
+
+- id: econ_housing_bubble
+  title: Real Estate Bubble Deflation
+  description: Property prices tumble following interest rate hikes, squeezing middle-class household wealth.
+  category: economic
+  base_prob: 0.030
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.2
+      duration_ticks: 7
+    - target: economy
+      parameter: inequality
+      delta: 0.02
+      duration_ticks: 6
+
+- id: econ_trade_surplus
+  title: Manufacturing Export Surge
+  description: Favorable exchange rates drive record industrial export volumes.
+  category: economic
+  base_prob: 0.035
+  severity: 0.50
+  effects:
+    - target: economy
+      parameter: growth
+      delta: 1.9
+      duration_ticks: 6
+    - target: party
+      parameter: valence_boost
+      delta: 0.25
+      duration_ticks: 4
+
+- id: econ_austerity_package
+  title: Emergency Fiscal Austerity Package
+  description: Ministry of Finance announces steep public spending cuts to rein in the national budget deficit.
+  category: economic
+  base_prob: 0.030
+  precondition: economy.growth < 0.5
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: unemployment
+      delta: 1.5
+      duration_ticks: 6
+    - target: government
+      parameter: stability
+      delta: -0.20
+      duration_ticks: 4
+
+# -------------------------------------------------------------
+# Scandals
+# -------------------------------------------------------------
+
+- id: scn_offshore_leak
+  title: Offshore Wealth Papers Leaked
+  description: Investigative journalists publish offshore financial records implicating senior political figures.
+  category: scandal
+  base_prob: 0.045
+  precondition: economy.corruption > 0.20
+  severity: 0.70
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.45
+      duration_ticks: 6
+    - target: economy
+      parameter: corruption
+      delta: 0.05
+      duration_ticks: 6
+
+- id: scn_defense_kickback
+  title: Defense Procurement Bribery Probe
+  description: Defense ministry officials under investigation for illicit kickbacks in fighter jet contract.
+  category: scandal
+  base_prob: 0.035
+  severity: 0.65
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.35
+      duration_ticks: 5
+    - target: government
+      parameter: stability
+      delta: -0.15
+      duration_ticks: 4
+
+- id: scn_campaign_finance
+  title: Illegal Foreign Campaign Donations Exposed
+  description: Electoral commission uncovers covert foreign funding flowing into ruling party coffers.
+  category: scandal
+  base_prob: 0.030
+  severity: 0.75
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.50
+      duration_ticks: 6
+    - target: party
+      parameter: funding
+      delta: -0.25
+      duration_ticks: 8
+
+- id: scn_nepotism_affair
+  title: High-Level Nepotism Investigation
+  description: Leaked emails show relatives of cabinet ministers granted state contracts without competitive tender.
+  category: scandal
+  base_prob: 0.040
+  severity: 0.50
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.25
+      duration_ticks: 4
+
+- id: scn_wiretap_scandal
+  title: Opposition Surveillance Wiretap Scandal
+  description: Intelligence services caught tapping communications of opposition party leaders.
+  category: scandal
+  base_prob: 0.025
+  severity: 0.85
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.60
+      duration_ticks: 8
+    - target: government
+      parameter: stability
+      delta: -0.30
+      duration_ticks: 6
+
+- id: scn_lobbying_cash
+  title: Cash-for-Amendments Sting
+  description: Lawmakers caught on hidden camera agreeing to table legislative amendments for private corporate cash.
+  category: scandal
+  base_prob: 0.035
+  severity: 0.60
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.30
+      duration_ticks: 4
+    - target: economy
+      parameter: corruption
+      delta: 0.04
+      duration_ticks: 5
+
+- id: scn_academic_fraud
+  title: Ministerial Thesis Plagiarism Discovery
+  description: Prominent cabinet member accused of extensive plagiarism in doctoral dissertation.
+  category: scandal
+  base_prob: 0.035
+  severity: 0.40
+  effects:
+    - target: party
+      parameter: scandal_accum
+      delta: 0.18
+      duration_ticks: 3
+
+# -------------------------------------------------------------
+# Social Movements & Protests
+# -------------------------------------------------------------
+
+- id: soc_general_strike
+  title: Nationwide General Strike
+  description: Trade union federation shuts down ports, rail networks, and public services over wage disputes.
+  category: social
+  base_prob: 0.035
+  precondition: economy.inflation > 3.0
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.2
+      duration_ticks: 2
+    - target: government
+      parameter: stability
+      delta: -0.15
+      duration_ticks: 3
+
+- id: soc_cost_of_living
+  title: Cost-of-Living Protests Fill Capital
+  description: Tens of thousands march through central squares protesting utility prices and grocery inflation.
+  category: social
+  base_prob: 0.040
+  precondition: economy.inflation > 3.5
+  severity: 0.65
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.18
+      duration_ticks: 4
+    - target: economy
+      parameter: security
+      delta: -0.05
+      duration_ticks: 3
+
+- id: soc_climate_strike
+  title: Mass Youth Climate Mobilization
+  description: Student-led climate walkouts draw hundreds of thousands demanding end to fossil fuel subsidies.
+  category: social
+  base_prob: 0.035
+  severity: 0.50
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.20
+      duration_ticks: 3
+
+- id: soc_tenant_strike
+  title: Urban Renters Boycott Movement
+  description: Urban tenant unions coordinate rent withholding campaigns against corporate landlords.
+  category: social
+  base_prob: 0.030
+  severity: 0.50
+  effects:
+    - target: economy
+      parameter: inequality
+      delta: -0.01
+      duration_ticks: 4
+
+- id: soc_farmer_convoy
+  title: Agrarian Tractor Blockade
+  description: Farmers drive convoys into capital city center protesting environmental nitrogen regulations.
+  category: social
+  base_prob: 0.030
+  severity: 0.55
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.12
+      duration_ticks: 3
+
+- id: soc_religious_revival
+  title: National Faith and Family Assembly
+  description: Massive religious rallies advocate conservative social policies and traditional family legislation.
+  category: social
+  base_prob: 0.030
+  severity: 0.45
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.15
+      duration_ticks: 3
+
+- id: soc_anti_war_protest
+  title: Nationwide Anti-War Demonstrations
+  description: Broad coalitions march against foreign military commitments and rising arms expenditures.
+  category: social
+  base_prob: 0.025
+  severity: 0.55
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.14
+      duration_ticks: 3
+
+# -------------------------------------------------------------
+# Security & Conflict
+# -------------------------------------------------------------
+
+- id: sec_capital_attack
+  title: Terrorist Bombing in Capital District
+  description: Bomb attack targeting transport interchange leaves dozens injured, prompting rally-around-the-flag.
+  category: security
+  base_prob: 0.020
+  severity: 0.85
+  effects:
+    - target: economy
+      parameter: security
+      delta: -0.25
+      duration_ticks: 6
+    - target: party
+      parameter: valence_boost
+      delta: 0.35
+      duration_ticks: 4
+
+- id: sec_border_skirmish
+  title: Territorial Border Incident
+  description: Exchange of artillery fire on disputed frontier raises international tensions.
+  category: security
+  base_prob: 0.025
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: security
+      delta: -0.15
+      duration_ticks: 4
+    - target: party
+      parameter: valence_boost
+      delta: 0.25
+      duration_ticks: 3
+
+- id: sec_cyberattack_grid
+  title: Hostile Cyberattack on Power Grid
+  description: State-backed hacking syndicate causes widespread regional blackouts and water utility shutdowns.
+  category: security
+  base_prob: 0.030
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.0
+      duration_ticks: 2
+    - target: economy
+      parameter: security
+      delta: -0.12
+      duration_ticks: 3
+
+- id: sec_cartel_offensive
+  title: Organized Crime Syndicate Clampdown
+  description: Security forces launch sweeping raids against illicit trafficking networks across port cities.
+  category: security
+  base_prob: 0.030
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: security
+      delta: 0.10
+      duration_ticks: 6
+    - target: economy
+      parameter: corruption
+      delta: -0.04
+      duration_ticks: 6
+
+- id: sec_naval_standoff
+  title: Exclusive Economic Zone Naval Standoff
+  description: Coast guard vessels intercept foreign naval ships prospecting in domestic sovereign waters.
+  category: security
+  base_prob: 0.025
+  severity: 0.60
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.20
+      duration_ticks: 2
+
+- id: sec_intelligence_breach
+  title: National Security Agency Whistleblower
+  description: Classified surveillance databases leaked revealing clandestine domestic surveillance programs.
+  category: security
+  base_prob: 0.025
+  severity: 0.65
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.20
+      duration_ticks: 5
+
+# -------------------------------------------------------------
+# Disasters
+# -------------------------------------------------------------
+
+- id: dis_earthquake
+  title: Major Richter 7.2 Earthquake
+  description: Devastating tremor strikes western provinces, damaging infrastructure and displacing thousands.
+  category: disaster
+  base_prob: 0.018
+  severity: 0.85
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.8
+      duration_ticks: 4
+    - target: party
+      parameter: valence_boost
+      delta: 0.20
+      duration_ticks: 4
+
+- id: dis_coastal_flood
+  title: Catastrophic Storm Surge & Flooding
+  description: Severe cyclone pushes seawater deep into coastal agricultural plains and port facilities.
+  category: disaster
+  base_prob: 0.025
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.1
+      duration_ticks: 3
+    - target: economy
+      parameter: inflation
+      delta: 0.8
+      duration_ticks: 3
+
+- id: dis_pandemic_outbreak
+  title: Respiratory Viral Epidemic Declared
+  description: Health ministry declares national emergency as novel viral strain spreads through transit hubs.
+  category: disaster
+  base_prob: 0.015
+  severity: 0.90
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -3.5
+      duration_ticks: 6
+    - target: economy
+      parameter: unemployment
+      delta: 2.2
+      duration_ticks: 8
+
+- id: dis_drought_crop_failure
+  title: Severe Multi-Season Agricultural Drought
+  description: Reservoir depletion cuts grain harvest by 30%, triggering agricultural subsidies debate.
+  category: disaster
+  base_prob: 0.025
+  severity: 0.65
+  effects:
+    - target: economy
+      parameter: inflation
+      delta: 1.5
+      duration_ticks: 5
+    - target: economy
+      parameter: growth
+      delta: -0.8
+      duration_ticks: 4
+
+- id: dis_wildfire_season
+  title: Record Wildfire Complex Threatens Suburbs
+  description: Blazes sweep dry forested hills, consuming residential communities and blanketing cities in smoke.
+  category: disaster
+  base_prob: 0.030
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -0.5
+      duration_ticks: 2
+
+- id: dis_chemical_spill
+  title: Industrial Chemical Spill into Major River
+  description: Toxic runoff shuts down municipal water intakes for three industrial cities.
+  category: disaster
+  base_prob: 0.025
+  severity: 0.55
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.10
+      duration_ticks: 3
+
+# -------------------------------------------------------------
+# International
+# -------------------------------------------------------------
+
+- id: int_trade_pact
+  title: Bilateral Free Trade Treaty Enters Force
+  description: Comprehensive tariff reductions enacted with major trading bloc, expanding export markets.
+  category: international
+  base_prob: 0.030
+  severity: 0.55
+  effects:
+    - target: economy
+      parameter: growth
+      delta: 1.4
+      duration_ticks: 8
+    - target: party
+      parameter: valence_boost
+      delta: 0.20
+      duration_ticks: 4
+
+- id: int_foreign_sanctions
+  title: Retaliatory Sanctions Enacted
+  description: International diplomatic row leads foreign powers to impose targeted export embargoes.
+  category: international
+  base_prob: 0.025
+  severity: 0.70
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.6
+      duration_ticks: 6
+    - target: economy
+      parameter: inflation
+      delta: 1.2
+      duration_ticks: 5
+
+- id: int_peace_accord
+  title: Historic Regional Peace Accord Signed
+  description: Diplomatic breakthrough resolves decades-old territorial claims and normalizes border commerce.
+  category: international
+  base_prob: 0.020
+  severity: 0.65
+  effects:
+    - target: economy
+      parameter: security
+      delta: 0.15
+      duration_ticks: 8
+    - target: party
+      parameter: valence_boost
+      delta: 0.30
+      duration_ticks: 4
+
+- id: int_refugee_influx
+  title: Humanitarian Refugee Flow from Neighboring Conflict
+  description: Humanitarian crisis across the border brings tens of thousands of displaced persons.
+  category: international
+  base_prob: 0.025
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: unemployment
+      delta: 0.5
+      duration_ticks: 6
+    - target: government
+      parameter: stability
+      delta: -0.10
+      duration_ticks: 4
+
+- id: int_imf_bailout
+  title: International Monetary Fund Structural Agreement
+  description: Emergency standby credit approved with stringent structural deficit conditions.
+  category: international
+  base_prob: 0.020
+  precondition: economy.growth < -1.0
+  severity: 0.75
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.22
+      duration_ticks: 6
+
+- id: int_tariff_war
+  title: Retaliatory Steel & Agricultural Tariffs
+  description: Escalating tariff war disrupts supply chains across heavy manufacturing and agricultural exporters.
+  category: international
+  base_prob: 0.025
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -1.1
+      duration_ticks: 5
+
+# -------------------------------------------------------------
+# Technological
+# -------------------------------------------------------------
+
+- id: tech_ai_automation
+  title: Autonomous Logistics Deployment
+  description: Rapid adoption of automated freight and logistics reduces warehouse headcounts by 25%.
+  category: technological
+  base_prob: 0.035
+  severity: 0.65
+  effects:
+    - target: economy
+      parameter: unemployment
+      delta: 1.2
+      duration_ticks: 8
+    - target: economy
+      parameter: growth
+      delta: 0.8
+      duration_ticks: 8
+
+- id: tech_renewable_breakthrough
+  title: Commercial Sodium Battery Grid Breakthrough
+  description: Domestic technology consortium achieves commercial grid storage viability, cutting energy costs.
+  category: technological
+  base_prob: 0.030
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: growth
+      delta: 1.6
+      duration_ticks: 10
+    - target: economy
+      parameter: inflation
+      delta: -0.8
+      duration_ticks: 6
+
+- id: tech_telecom_blackout
+  title: Critical Subsea Fiber Cable Severed
+  description: International internet traffic choked for weeks following anchor drag on main trunk cable.
+  category: technological
+  base_prob: 0.020
+  severity: 0.50
+  effects:
+    - target: economy
+      parameter: growth
+      delta: -0.6
+      duration_ticks: 2
+
+- id: tech_pharma_cure
+  title: Breakthrough Oncological Treatment Approved
+  description: Nation's biotech cluster patents revolutionary therapeutic treatment, boosting health sector.
+  category: technological
+  base_prob: 0.025
+  severity: 0.55
+  effects:
+    - target: economy
+      parameter: growth
+      delta: 1.0
+      duration_ticks: 6
+
+- id: tech_quantum_leap
+  title: Sovereign Quantum Encryption Network
+  description: Defense ministry commissions fully hardened sovereign quantum communications backbone.
+  category: technological
+  base_prob: 0.020
+  severity: 0.50
+  effects:
+    - target: economy
+      parameter: security
+      delta: 0.08
+      duration_ticks: 6
+
+# -------------------------------------------------------------
+# Institutional
+# -------------------------------------------------------------
+
+- id: inst_supreme_court_crisis
+  title: Constitutional Court Invalidates Flagship Law
+  description: Judicial bench strikes down government security statute as ultra vires, sparking constitutional impasse.
+  category: institutional
+  base_prob: 0.030
+  severity: 0.75
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.25
+      duration_ticks: 5
+
+- id: inst_referendum_autonomy
+  title: Regional Autonomy Referendum Passed
+  description: Highland provincial voters overwhelmingly endorse expanded fiscal autonomy and linguistic rights.
+  category: institutional
+  base_prob: 0.020
+  severity: 0.70
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.15
+      duration_ticks: 4
+
+- id: inst_electoral_reform_bill
+  title: Electoral Reform Law Enacted
+  description: Cross-party commission reaches compromise adjusting parliamentary seat formulas.
+  category: institutional
+  base_prob: 0.020
+  precondition: government.stability > 0.65
+  severity: 0.65
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.20
+      duration_ticks: 4
+
+- id: inst_senate_deadlock
+  title: Upper Chamber Filibuster Impasse
+  description: Opposition senators block national budget appropriations bill, threatening government shutdown.
+  category: institutional
+  base_prob: 0.030
+  severity: 0.65
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.20
+      duration_ticks: 3
+
+- id: inst_emergency_powers
+  title: State of Exception Invoked
+  description: Cabinet invokes emergency decree authority following civil unrest, provoking civil liberties uproar.
+  category: institutional
+  base_prob: 0.018
+  precondition: economy.security < 0.60
+  severity: 0.85
+  effects:
+    - target: economy
+      parameter: security
+      delta: 0.15
+      duration_ticks: 4
+    - target: government
+      parameter: stability
+      delta: -0.30
+      duration_ticks: 4
+
+- id: inst_corruption_commission
+  title: Independent Anti-Corruption Agency Empowered
+  description: Sweeping statutory powers granted to autonomous special prosecutor to investigate public graft.
+  category: institutional
+  base_prob: 0.025
+  severity: 0.60
+  effects:
+    - target: economy
+      parameter: corruption
+      delta: -0.08
+      duration_ticks: 8
+
+# -------------------------------------------------------------
+# Leadership
+# -------------------------------------------------------------
+
+- id: ldr_pm_resignation
+  title: Prime Minister Resigns Due to Ill Health
+  description: Head of government announces immediate step-down, triggering expedited party succession contest.
+  category: leadership
+  base_prob: 0.020
+  precondition: government.months_in_office > 18
+  severity: 0.80
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.35
+      duration_ticks: 4
+
+- id: ldr_charismatic_challenger
+  title: Charismatic Opposition Orator Surges
+  description: Dynamic new leader elected to head main opposition party, transforming poll momentum.
+  category: leadership
+  base_prob: 0.035
+  severity: 0.60
+  effects:
+    - target: party
+      parameter: charisma
+      delta: 0.30
+      duration_ticks: 8
+
+- id: ldr_cabinet_mutiny
+  title: Senior Ministers Resign in Coordinated Mutiny
+  description: Three cabinet figures resign simultaneously, citing fundamental disagreements with leadership direction.
+  category: leadership
+  base_prob: 0.025
+  precondition: government.stability < 0.50
+  severity: 0.75
+  effects:
+    - target: government
+      parameter: stability
+      delta: -0.40
+      duration_ticks: 3
+
+- id: ldr_elder_statesman_passing
+  title: Passing of Revered Former President
+  description: National period of mourning declared; political rivals unite temporarily at state funeral.
+  category: leadership
+  base_prob: 0.025
+  severity: 0.50
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.15
+      duration_ticks: 2
+
+- id: ldr_factional_purge
+  title: Party Leadership Purges Dissident Faction
+  description: Party executive strips parliamentary whip from dissident backbench rebels.
+  category: leadership
+  base_prob: 0.030
+  severity: 0.60
+  effects:
+    - target: party
+      parameter: cohesion
+      delta: 0.20
+      duration_ticks: 6
+
+- id: ldr_assassination_attempt
+  title: Thwarted Assassination Plot
+  description: Security forces foil plot against prominent party leader, triggering outpouring of public sympathy.
+  category: leadership
+  base_prob: 0.015
+  severity: 0.85
+  effects:
+    - target: party
+      parameter: valence_boost
+      delta: 0.40
+      duration_ticks: 4
+
+- id: ldr_shadow_cabinet_split
+  title: Opposition Frontbench Shadow Resignations
+  description: Disagreements over fiscal policy cause several shadow ministers to quit opposition frontbench.
+  category: leadership
+  base_prob: 0.030
+  severity: 0.50
+  effects:
+    - target: party
+      parameter: cohesion
+      delta: -0.25
+      duration_ticks: 4
