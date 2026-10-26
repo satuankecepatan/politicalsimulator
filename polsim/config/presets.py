@@ -1,0 +1,293 @@
+"""Built-in demographic presets and scenario generators."""
+
+from __future__ import annotations
+
+from polsim.config.schema import (
+    CountryConfig,
+    DemographicsConfig,
+    FactionConfig,
+    InstitutionsConfig,
+    PartyConfig,
+    RegionConfig,
+    ScenarioConfig,
+)
+
+PRESETS: dict[str, dict] = {
+    "industrial_democracy": {
+        "marginals": {
+            "age": {"18-29": 0.20, "30-44": 0.25, "45-64": 0.32, "65+": 0.23},
+            "income": {"low": 0.28, "middle": 0.52, "high": 0.20},
+            "education": {"primary": 0.15, "secondary": 0.50, "tertiary": 0.35},
+            "settlement": {"urban": 0.72, "rural": 0.28},
+            "religion": {"secular": 0.65, "religious": 0.35},
+            "identity": {"majority": 0.82, "minority": 0.18},
+            "sector": {"industry": 0.22, "services": 0.55, "public": 0.18, "agriculture": 0.05},
+        },
+        "base_ideology": {
+            "economic": 5.0,
+            "social": 10.0,
+            "authority": -5.0,
+            "identity": -10.0,
+            "secularism": -25.0,
+            "environment": 5.0,
+            "trust": 15.0,
+        },
+        "loadings": {
+            "age:65+": {"social": 25.0, "authority": 15.0, "trust": 10.0},
+            "age:18-29": {"social": -30.0, "environment": 25.0, "trust": -20.0},
+            "education:tertiary": {"social": -25.0, "identity": -30.0, "secularism": -20.0},
+            "settlement:rural": {"social": 30.0, "environment": -20.0, "identity": 25.0},
+            "income:high": {"economic": 35.0, "trust": 15.0},
+            "income:low": {"economic": -35.0, "trust": -25.0},
+            "religion:religious": {"social": 40.0, "secularism": 50.0},
+        },
+    },
+    "post_colonial_multiethnic": {
+        "marginals": {
+            "age": {"18-29": 0.38, "30-44": 0.30, "45-64": 0.22, "65+": 0.10},
+            "income": {"low": 0.48, "middle": 0.40, "high": 0.12},
+            "education": {"primary": 0.40, "secondary": 0.45, "tertiary": 0.15},
+            "settlement": {"urban": 0.45, "rural": 0.55},
+            "religion": {"secular": 0.20, "religious": 0.80},
+            "identity": {"majority": 0.55, "minority": 0.45},
+            "sector": {"industry": 0.15, "services": 0.35, "public": 0.20, "agriculture": 0.30},
+        },
+        "base_ideology": {
+            "economic": -15.0,
+            "social": 25.0,
+            "authority": 10.0,
+            "identity": 15.0,
+            "secularism": 35.0,
+            "environment": -15.0,
+            "trust": -10.0,
+        },
+        "loadings": {
+            "identity:minority": {"identity": -30.0, "authority": -25.0},
+            "settlement:rural": {"social": 25.0, "agriculture": 20.0},
+            "education:tertiary": {"trust": -20.0, "social": -20.0},
+        },
+    },
+    "wealthy_aging": {
+        "marginals": {
+            "age": {"18-29": 0.14, "30-44": 0.20, "45-64": 0.33, "65+": 0.33},
+            "income": {"low": 0.18, "middle": 0.55, "high": 0.27},
+            "education": {"primary": 0.08, "secondary": 0.45, "tertiary": 0.47},
+            "settlement": {"urban": 0.82, "rural": 0.18},
+            "religion": {"secular": 0.80, "religious": 0.20},
+            "identity": {"majority": 0.78, "minority": 0.22},
+            "sector": {"industry": 0.12, "services": 0.68, "public": 0.18, "agriculture": 0.02},
+        },
+        "base_ideology": {
+            "economic": 10.0,
+            "social": 5.0,
+            "authority": -5.0,
+            "identity": -15.0,
+            "secularism": -40.0,
+            "environment": 20.0,
+            "trust": 25.0,
+        },
+        "loadings": {
+            "age:65+": {"social": 20.0, "economic": 15.0},
+            "education:tertiary": {"environment": 25.0, "social": -25.0},
+        },
+    },
+    "young_rural": {
+        "marginals": {
+            "age": {"18-29": 0.35, "30-44": 0.32, "45-64": 0.23, "65+": 0.10},
+            "income": {"low": 0.42, "middle": 0.48, "high": 0.10},
+            "education": {"primary": 0.35, "secondary": 0.52, "tertiary": 0.13},
+            "settlement": {"urban": 0.30, "rural": 0.70},
+            "religion": {"secular": 0.30, "religious": 0.70},
+            "identity": {"majority": 0.88, "minority": 0.12},
+            "sector": {"industry": 0.18, "services": 0.32, "public": 0.15, "agriculture": 0.35},
+        },
+        "base_ideology": {
+            "economic": -10.0,
+            "social": 30.0,
+            "authority": 15.0,
+            "identity": 35.0,
+            "secularism": 30.0,
+            "environment": -30.0,
+            "trust": -15.0,
+        },
+        "loadings": {
+            "settlement:rural": {"environment": -20.0, "identity": 20.0},
+            "religion:religious": {"social": 35.0, "secularism": 40.0},
+        },
+    },
+}
+
+
+def get_default_parties() -> list[PartyConfig]:
+    """Return a balanced spectrum of generic parties for presets."""
+    return [
+        PartyConfig(
+            id="sdp",
+            name="Social Democratic Party",
+            abbreviation="SDP",
+            color="#E63946",
+            ideology={
+                "economic": -45.0,
+                "social": -30.0,
+                "authority": -10.0,
+                "identity": -25.0,
+                "secularism": -20.0,
+                "environment": 20.0,
+                "trust": 20.0,
+            },
+            salience={"economic": 0.85, "social": 0.60, "trust": 0.50},
+            pragmatism=0.65,
+            organization=0.75,
+            funding=0.60,
+            charisma=0.55,
+            cohesion=0.70,
+            populism=0.15,
+            corruption=0.25,
+            coalition_willingness=0.75,
+            base_appeal={"sector:services": 0.4, "sector:public": 0.5, "income:low": 0.4, "income:middle": 0.3},
+            factions=[
+                FactionConfig(name="Trade Union Left", offset={"economic": -25.0, "social": 10.0}, weight=0.4),
+                FactionConfig(name="Third Way Reformers", offset={"economic": 20.0, "social": -15.0}, weight=0.6),
+            ],
+        ),
+        PartyConfig(
+            id="cdp",
+            name="Conservative Democratic Alliance",
+            abbreviation="CDA",
+            color="#1D3557",
+            ideology={
+                "economic": 35.0,
+                "social": 35.0,
+                "authority": 20.0,
+                "identity": 25.0,
+                "secularism": 25.0,
+                "environment": -20.0,
+                "trust": 30.0,
+            },
+            salience={"economic": 0.70, "social": 0.65, "authority": 0.55},
+            pragmatism=0.60,
+            organization=0.70,
+            funding=0.75,
+            charisma=0.50,
+            cohesion=0.75,
+            populism=0.20,
+            corruption=0.30,
+            coalition_willingness=0.70,
+            base_appeal={"settlement:rural": 0.4, "age:65+": 0.5, "income:high": 0.5, "religion:religious": 0.5},
+            factions=[
+                FactionConfig(name="Traditionalist Wing", offset={"social": 25.0, "secularism": 20.0}, weight=0.5),
+                FactionConfig(name="Business Moderates", offset={"economic": 25.0, "social": -20.0}, weight=0.5),
+            ],
+        ),
+        PartyConfig(
+            id="lib",
+            name="Free Liberal Movement",
+            abbreviation="FLM",
+            color="#FFB703",
+            ideology={
+                "economic": 55.0,
+                "social": -40.0,
+                "authority": -50.0,
+                "identity": -35.0,
+                "secularism": -40.0,
+                "environment": 0.0,
+                "trust": 15.0,
+            },
+            salience={"economic": 0.80, "authority": 0.70, "social": 0.50},
+            pragmatism=0.70,
+            organization=0.55,
+            funding=0.70,
+            charisma=0.60,
+            cohesion=0.80,
+            populism=0.10,
+            corruption=0.20,
+            coalition_willingness=0.80,
+            base_appeal={"education:tertiary": 0.5, "income:high": 0.4, "settlement:urban": 0.4},
+            factions=[
+                FactionConfig(name="Civil Libertarians", offset={"authority": -25.0, "social": -20.0}, weight=0.4),
+                FactionConfig(name="Fiscal Conservatives", offset={"economic": 25.0, "authority": 15.0}, weight=0.6),
+            ],
+        ),
+        PartyConfig(
+            id="grn",
+            name="Green Ecological Union",
+            abbreviation="GEU",
+            color="#2A9D8F",
+            ideology={
+                "economic": -20.0,
+                "social": -55.0,
+                "authority": -30.0,
+                "identity": -45.0,
+                "secularism": -30.0,
+                "environment": 85.0,
+                "trust": -5.0,
+            },
+            salience={"environment": 0.95, "social": 0.65, "identity": 0.50},
+            pragmatism=0.45,
+            organization=0.50,
+            funding=0.40,
+            charisma=0.55,
+            cohesion=0.65,
+            populism=0.25,
+            corruption=0.10,
+            coalition_willingness=0.60,
+            base_appeal={"education:tertiary": 0.4, "age:18-29": 0.5, "settlement:urban": 0.3},
+            factions=[
+                FactionConfig(name="Eco-Socialists", offset={"economic": -40.0, "environment": 10.0}, weight=0.45),
+                FactionConfig(name="Realos", offset={"economic": 20.0, "pragmatism": 0.3}, weight=0.55),
+            ],
+        ),
+        PartyConfig(
+            id="nat",
+            name="National Sovereignty Party",
+            abbreviation="NSP",
+            color="#9B2226",
+            ideology={
+                "economic": 0.0,
+                "social": 60.0,
+                "authority": 55.0,
+                "identity": 80.0,
+                "secularism": 20.0,
+                "environment": -50.0,
+                "trust": -65.0,
+            },
+            salience={"identity": 0.90, "trust": 0.80, "authority": 0.65},
+            pragmatism=0.30,
+            organization=0.60,
+            funding=0.45,
+            charisma=0.70,
+            cohesion=0.55,
+            populism=0.85,
+            corruption=0.40,
+            coalition_willingness=0.35,
+            base_appeal={"identity:majority": 0.4, "settlement:rural": 0.4, "income:low": 0.3},
+            factions=[
+                FactionConfig(name="Populist Agitators", offset={"trust": -25.0, "populism": 0.15}, weight=0.6),
+                FactionConfig(name="Traditional Nationalists", offset={"authority": 20.0, "social": 15.0}, weight=0.4),
+            ],
+        ),
+    ]
+
+
+def build_scenario(
+    preset_name: str = "industrial_democracy",
+    seed: int = 42,
+    years: int = 50,
+) -> ScenarioConfig:
+    """Build a complete ScenarioConfig initialized from a preset."""
+    preset = PRESETS.get(preset_name, PRESETS["industrial_democracy"])
+    demo_cfg = DemographicsConfig(
+        preset=preset_name,
+        marginals=preset["marginals"],
+        base_ideology=preset["base_ideology"],
+        loadings=preset["loadings"],
+    )
+    parties = get_default_parties()
+    return ScenarioConfig(
+        name=f"Scenario: {preset_name.replace('_', ' ').title()}",
+        description=f"Standard scenario generated from preset '{preset_name}'.",
+        demographics=demo_cfg,
+        parties=parties,
+        country=CountryConfig(name="Republic of Veridia", population=10_000_000, n_regions=8),
+        institutions=InstitutionsConfig(electoral_system="pr", seats=120, threshold=0.05),
+    )
