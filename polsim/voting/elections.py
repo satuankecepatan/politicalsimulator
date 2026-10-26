@@ -223,7 +223,7 @@ def conduct_election(
 
     winner_idx = int(np.argmax(allocated_seats))
     winner_id = party_ids[winner_idx]
-    majority = (allocated_seats[winner_idx] > (total_seats / 2.0))
+    majority = bool(allocated_seats[winner_idx] > (total_seats / 2.0))
 
     # Update party objects with election results
     for i, p in enumerate(parties):
