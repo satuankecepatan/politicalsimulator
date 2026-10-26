@@ -1,0 +1,23 @@
+# ==============================================================================
+# Political Simulator - Backend Dependencies
+# Formulated according to .agent/RULES/AGENT.md & .agent/SKILL/MATHEMATICIAN.md
+# ==============================================================================
+
+# Vector & Statistical Modeling
+# (Spatial voting distance/utility matrices, softmax, Dirichlet polling, OU processes)
+numpy>=1.24.0
+scipy>=1.10.0
+
+# State Modeling & Validation
+# (Pydantic models for VoterBloc, Party, District, and State snapshots)
+pydantic>=2.0.0
+
+# Web Framework & API Server
+# (Serving simulation state snapshots and dispatching policy/action payloads)
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+
+# Testing & Determinism Verification
+# (Validating deterministic seeding, electoral algorithms, and API endpoints)
+pytest>=7.4.0
+httpx>=0.24.0
